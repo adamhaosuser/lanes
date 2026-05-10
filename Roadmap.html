@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SDK Roadmap — FY26</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body data-variant="editorial" data-density="default" data-palette="cream" data-show-kr="true" data-quarter-themes="true">
+
+<div class="app">
+
+  <!-- ============== MASTHEAD =============== -->
+  <header class="masthead">
+    <div class="head-left" id="masthead-left"></div>
+    <div class="actions">
+      <button id="import-btn" class="icon-btn" title="Import roadmap (JSON)" aria-label="Import">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+      </button>
+      <button id="add-btn" class="icon-btn" title="Add initiative" aria-label="Add">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button id="cog-btn" class="icon-btn" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <input type="file" id="file-input" accept=".json,application/json" style="display:none" />
+    </div>
+  </header>
+
+  <!-- ============== KPI strip =============== -->
+  <section class="kpis" id="kpis"></section>
+
+  <!-- ============== Filter rail =============== -->
+  <section class="filter-rail">
+    <div class="filter-group">
+      <span class="label">Quarter</span>
+      <div id="filter-quarters" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="filter-group">
+      <span class="label">KR</span>
+      <div id="filter-krs" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <button id="filter-clear" class="filter-clear hidden">Clear filters</button>
+  </section>
+
+  <!-- ============== Layout: timeline + KR rail =============== -->
+  <section class="layout">
+    <div class="timeline-wrap">
+      <div class="timeline">
+        <div class="quarters-row" id="quarters-row"></div>
+        <div class="sprints-row" id="sprints-row"></div>
+        <div class="lanes" id="lanes">
+          <div class="lanes-inner" id="lanes-inner"></div>
+          <div class="empty-state hidden" id="empty-state">
+            <h3>Nothing on the roadmap yet</h3>
+            <p>Drop a roadmap JSON onto the page to populate the timeline, or add an initiative manually.</p>
+            <div class="actions">
+              <button class="btn primary" id="empty-import-btn">Import JSON</button>
+              <button class="btn" id="empty-add-btn">Add initiative</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span class="item"><span class="sw major"></span> Major</span>
+        <span class="item"><span class="sw minor"></span> Minor</span>
+        <span class="hint">Drag a card to move &nbsp;·&nbsp; drag an edge to resize &nbsp;·&nbsp; hover for detail &nbsp;·&nbsp; click to edit</span>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<!-- ============== Popover =============== -->
+<div class="popover" id="popover" role="dialog" aria-label="Initiative detail"></div>
+
+<!-- ============== Drop overlay =============== -->
+<div class="drop-overlay" id="drop-overlay">
+  <div class="msg">Drop JSON to import<span class="sub">Replaces the current timeline</span></div>
+</div>
+
+<!-- ============== Toast =============== -->
+<div class="toast" id="toast"></div>
+
+<!-- ============== Settings panel =============== -->
+<div class="scrim" id="scrim"></div>
+
+<aside class="panel" id="panel" aria-label="Settings panel">
+  <header class="panel-header">
+    <h2>Settings</h2>
+    <div class="sub">Roadmap data</div>
+  </header>
+  <div class="panel-body">
+    <h3>Look</h3>
+    <div class="meta-form" id="look-form"></div>
+    <h3>Masthead</h3>
+    <div class="meta-form" id="meta-form"></div>
+    <h3>Stages</h3>
+    <div class="stages-form" id="stages-form"></div>
+    <h3>Initiatives</h3>
+    <div class="feature-list" id="feature-list"></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn" id="panel-import-btn">Import</button>
+    <button class="btn" id="export-btn">Export</button>
+    <button class="btn danger" id="reset-btn">Reset</button>
+    <button class="btn primary" id="close-panel">Done</button>
+  </div>
+</aside>
+
+<!-- ============== Edit modal =============== -->
+<div class="modal" id="modal" role="dialog" aria-label="Edit initiative">
+  <div class="modal-card">
+    <header class="head"><h2 id="modal-title">Edit initiative</h2></header>
+    <div class="body" id="modal-body"></div>
+    <div class="foot">
+      <button class="btn danger" id="delete-feature">Delete</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" id="cancel-edit">Cancel</button>
+        <button class="btn primary" id="save-edit">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
